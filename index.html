@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Retro Arcade Hub</title>
+    <!-- Tailwind CSS for clean layout architecture and component design -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Neon Aesthetic Card Glow Borders */
+        .neon-border-indigo { box-shadow: 0 0 10px rgba(99, 102, 241, 0.4), inset 0 0 10px rgba(99, 102, 241, 0.2); }
+        .neon-border-emerald { box-shadow: 0 0 10px rgba(52, 211, 153, 0.4), inset 0 0 10px rgba(52, 211, 153, 0.2); }
+        .neon-border-pink { box-shadow: 0 0 10px rgba(244, 114, 182, 0.4), inset 0 0 10px rgba(244, 114, 182, 0.2); }
+        .neon-border-amber { box-shadow: 0 0 10px rgba(251, 191, 36, 0.4), inset 0 0 10px rgba(251, 191, 36, 0.2); }
+        
+        .arcade-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .arcade-card:hover {
+            transform: translateY(-5px);
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased selection:bg-indigo-500 selection:text-white">
+
+    <!-- ========================================== -->
+    <!-- NEON ARCADE DASHBOARD (MAIN HUB)         -->
+    <!-- ========================================== -->
+    <div id="hub-screen" class="container mx-auto px-4 py-8 max-w-6xl">
+        <header class="text-center mb-12">
+            <h1 class="text-4xl md:text-6xl font-black tracking-widest text-white mb-4 drop-shadow-[0_0_15px_rgba(99,102,241,0.6)]">
+                NEON RETRO ARCADE
+            </h1>
+            <p class="text-slate-400 text-base md:text-lg max-w-xl mx-auto">
+                Select an illuminated module below. Built utilizing an expandable directory registry for direct local routing.
+            </p>
+        </header>
+
+        <!-- Dynamic Registry Grid Container Root -->
+        <div id="game-grid-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- Instantiated dynamically via JavaScript configuration below -->
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- DIRECTORY ROUTING SCRIPT SYSTEM            -->
+    <!-- ========================================== -->
+    <script>
+        /**
+         * ========================================================
+         * THE EXPANDABLE SUB-DIRECTORY REGISTRY
+         * ========================================================
+         * To add a new game file structure to your portfolio repo:
+         *   1. Place your new game project folder in the root repository folder.
+         *   2. Set your custom game filename as the 'folderPath' target below.
+         *   3. Append an entry configuration to this array. The system automatically 
+         *      renders the card and updates the direct routing path.
+         */
+        const ARCADE_REGISTRY = [
+            {
+                id: "2048",
+                title: "Neon 2048",
+                folderPath: "./neon-2048/2048.html",
+                icon: `<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V16zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V16z" /></svg>`,
+                colorGradient: "from-indigo-500/20 to-purple-500/5",
+                glowBorder: "neon-border-indigo",
+                hoverBorder: "hover:border-indigo-500/60",
+                btnBg: "bg-indigo-600 hover:bg-indigo-500 shadow-indigo-900/40",
+                description: "Slide and merge matching blocks in a neon-illuminated numeric strategy interface."
+            },
+            {
+                id: "sweeper",
+                title: "Neon Sweeper",
+                folderPath: "./neon-sweeper/sweeper.html",
+                icon: `<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>`,
+                colorGradient: "from-emerald-500/20 to-teal-500/5",
+                glowBorder: "neon-border-emerald",
+                hoverBorder: "hover:border-emerald-500/60",
+                btnBg: "bg-emerald-600 hover:bg-emerald-500 shadow-emerald-900/40",
+                description: "Isolate hidden matrix hazards safely using localized proximity value indicators."
+            },
+            {
+                id: "breaker",
+                title: "Neon Breaker",
+                folderPath: "./neon-breaker/breaker.html",
+                icon: `<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>`,
+                colorGradient: "from-pink-500/20 to-rose-500/5",
+                glowBorder: "neon-border-pink",
+                hoverBorder: "hover:border-pink-500/60",
+                btnBg: "bg-pink-600 hover:bg-pink-500 shadow-pink-900/40",
+                description: "Dismantle geometric block configurations utilizing bounce vector surface mechanics."
+            },
+            {
+                id: "tactoe",
+                title: "Neon Tac Toe",
+                folderPath: "./neon-tactoe/tactoe.html",
+                icon: `<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16M9 3v18M15 3v18" /></svg>`,
+                colorGradient: "from-amber-500/20 to-orange-500/5",
+                glowBorder: "neon-border-amber",
+                hoverBorder: "hover:border-amber-500/60",
+                btnBg: "bg-amber-600 hover:bg-amber-500 shadow-amber-900/40",
+                description: "Challenge an engine logic profile on a localized grid interface environment."
+            }
+        ];
+
+        // Instantiate the registry interfaces on document ready state
+        window.addEventListener('DOMContentLoaded', () => {
+            const gridContainer = document.getElementById('game-grid-container');
+            gridContainer.innerHTML = ''; 
+            
+            ARCADE_REGISTRY.forEach(game => {
+                const card = document.createElement('div');
+                card.className = `arcade-card bg-slate-900 border border-slate-800/80 ${game.hoverBorder} ${game.glowBorder} rounded-2xl overflow-hidden shadow-xl flex flex-col`;
+                card.innerHTML = `
+                    <div class="p-5 flex-grow bg-gradient-to-br ${game.colorGradient}">
+                        <div class="w-10 h-10 bg-slate-950/60 rounded-xl flex items-center justify-center mb-3 text-slate-200 border border-slate-800">
+                            ${game.icon}
+                        </div>
+                        <h2 class="text-xl font-bold mb-1.5 text-white">${game.title}</h2>
+                        <p class="text-slate-400 text-xs leading-relaxed">${game.description}</p>
+                    </div>
+                    <div class="p-4 bg-slate-950/40 border-t border-slate-900">
+                        <a href="${game.folderPath}" class="w-full ${game.btnBg} text-white font-bold py-2 px-4 rounded-xl text-xs transition duration-200 shadow-lg text-center block">
+                            Launch Interface &rarr;
+                        </a>
+                    </div>
+                `;
+                gridContainer.appendChild(card);
+            });
+        });
+    </script>
+</body>
+</html>
