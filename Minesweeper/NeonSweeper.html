@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Neon Sweeper</title>
+    <style>
+        :root {
+            --neon-blue: #00f0ff;
+            --neon-pink: #ff007f;
+            --neon-purple: #9d00ff;
+            --neon-green: #39ff14;
+            --neon-yellow: #ffff00;
+            --neon-orange: #ff9900;
+            --bg-dark: #0a0a12;
+            --panel-dark: #121225;
+            --cell-bg: rgba(255, 255, 255, 0.03);
+            --cell-border: rgba(255, 255, 255, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 12px;
+            overflow-x: hidden;
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 500px;
+            background-color: var(--panel-dark);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), 0 0 25px rgba(157, 0, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+        }
+
+        /* Controls / Configuration */
+        .controls-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.02);
+        }
+
+        .difficulty-selector {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-diff {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: rgba(255, 255, 255, 0.6);
+            padding: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-diff.active {
+            color: #000000;
+            font-weight: 700;
+            background-color: var(--neon-blue);
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 12px rgba(0, 240, 255, 0.4);
+        }
+
+        /* Mobile Utility Tools */
+        .mobile-tools {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 10px;
+        }
+
+        .mode-label {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .tool-switch {
+            display: flex;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 8px;
+            padding: 3px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            flex: 1;
+            max-width: 200px;
+        }
+
+        .btn-tool {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.4);
+            padding: 6px 10px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-tool.active[data-mode="dig"] {
+            background: rgba(0, 240, 255, 0.15);
+            color: var(--neon-blue);
+            border: 1px solid rgba(0, 240, 255, 0.2);
+        }
+
+        .btn-tool.active[data-mode="flag"] {
+            background: rgba(255, 0, 127, 0.15);
+            color: var(--neon-pink);
+            border: 1px solid rgba(255, 0, 127, 0.2);
+        }
+
+        /* HUD Header Display */
+        .hud-display {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px 16px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .hud-counter {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 70px;
+        }
+
+        .hud-lbl {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.4);
+            letter-spacing: 1px;
+            margin-bottom: 2px;
+        }
+
+        .hud-val {
+            font-family: monospace;
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: var(--neon-yellow);
+            text-shadow: 0 0 6px rgba(255, 234, 0, 0.2);
+        }
+
+        .btn-reset {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            transition: all 0.2s ease;
+        }
+
+        .btn-reset:hover {
+            border-color: var(--neon-purple);
+            box-shadow: 0 0 10px rgba(157, 0, 255, 0.3);
+            background: rgba(157, 0, 255, 0.1);
+        }
+
+        /* Board Grid Layout Viewport wrapper */
+        .board-wrapper {
+            width: 100%;
+            overflow: auto;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            padding: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            display: flex;
+            justify-content: center;
+        }
+
+        .mines-grid {
+            display: grid;
+            gap: 4px;
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .grid-cell {
+            aspect-ratio: 1 / 1;
+            background: var(--cell-bg);
+            border: 1px solid var(--cell-border);
+            border-radius: 4px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 900;
+            font-size: 1.05rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            position: relative;
+        }
+
+        .grid-cell:not(.revealed):hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .grid-cell.revealed {
+            background: rgba(0, 0, 0, 0.4);
+            border-color: rgba(255, 255, 255, 0.02);
+            cursor: default;
+        }
+
+        .grid-cell.mine-hit {
+            background: rgba(255, 0, 127, 0.25) !important;
+            border-color: var(--neon-pink) !important;
+            box-shadow: inset 0 0 10px var(--neon-pink);
+        }
+
+        .grid-cell svg {
+            width: 65%;
+            height: 65%;
+        }
+
+        /* Number Colors Context Matrix */
+        .n-1 { color: var(--neon-blue); text-shadow: 0 0 4px rgba(0, 240, 255, 0.4); }
+        .n-2 { color: var(--neon-green); text-shadow: 0 0 4px rgba(57, 255, 20, 0.4); }
+        .n-3 { color: var(--neon-pink); text-shadow: 0 0 4px rgba(255, 0, 127, 0.4); }
+        .n-4 { color: var(--neon-purple); text-shadow: 0 0 4px rgba(157, 0, 255, 0.4); }
+        .n-5 { color: var(--neon-yellow); text-shadow: 0 0 4px rgba(2ffff, 0, 0.4); }
+        .n-6 { color: var(--neon-orange); text-shadow: 0 0 4px rgba(255, 153, 0, 0.4); }
+        .n-7 { color: #00ffaa; text-shadow: 0 0 4px rgba(0, 255, 170, 0.4); }
+        .n-8 { color: #ff3333; text-shadow: 0 0 4px rgba(255, 51, 51, 0.4); }
+
+        /* Game Status Message text info */
+        .status-box {
+            min-height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.15);
+        }
+
+        .status-msg.win {
+            color: var(--neon-green);
+            text-shadow: 0 0 10px var(--neon-green);
+        }
+
+        .status-msg.lose {
+            color: var(--neon-pink);
+            text-shadow: 0 0 10px var(--neon-pink);
+        }
+
+        .status-msg.ready {
+            color: rgba(255, 255, 255, 0.4);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Place this uniform header at the top of each independent game file -->
+    <div class="w-full bg-slate-900 border-b border-slate-800 p-4">
+        <div class="container mx-auto max-w-5xl flex items-center justify-between">
+            <!-- Steps out of the subfolder straight back to the main hub index.html -->
+            <a href="../index.html" class="bg-slate-950 border border-slate-800 hover:border-indigo-500 text-slate-300 px-4 py-2 rounded-xl text-sm font-semibold transition duration-150 inline-flex items-center gap-2">
+                &larr; Back to Arcade Menu
+            </a>
+            <span class="text-xs tracking-widest font-bold text-slate-500 uppercase">Module Active</span>
+        </div>
+    </div>
+    
+    <div class="game-container">
+        <h1>Neon Sweeper</h1>
+
+        <!-- Configuration panel adjustments layouts -->
+        <div class="controls-panel">
+            <div class="difficulty-selector">
+                <button class="btn-diff active" data-level="easy">Easy</button>
+                <button class="btn-diff" data-level="medium">Medium</button>
+                <button class="btn-diff" data-level="hard">Hard</button>
+            </div>
+
+            <!-- Mobile Specific Flag Toggle Tools Help Assist -->
+            <div class="mobile-tools">
+                <span class="mode-label">Tap Action:</span>
+                <div class="tool-switch">
+                    <button class="btn-tool active" data-mode="dig">
+                        ⛏️ Dig
+                    </button>
+                    <button class="btn-tool" data-mode="flag">
+                        🚩 Flag
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scoreboard Stats Display Grid -->
+        <div class="hud-display">
+            <div class="hud-counter">
+                <span class="hud-lbl">Mines</span>
+                <span id="mine-count-val" class="hud-val">010</span>
+            </div>
+            
+            <button id="btn-restart" class="btn-reset">😊</button>
+            
+            <div class="hud-counter">
+                <span class="hud-lbl">Time</span>
+                <span id="timer-val" class="hud-val">000</span>
+            </div>
+        </div>
+
+        <!-- Render Target Canvas Window Elements Box Matrix -->
+        <div class="board-wrapper">
+            <div id="mines-grid" class="mines-grid"></div>
+        </div>
+
+        <!-- Interactive Text Summary Notification Feed Info -->
+        <div class="status-box">
+            <span id="status-msg" class="status-msg ready">Select a cell to begin</span>
+        </div>
+    </div>
+
+    <script>
+        // Game Settings Matrix Difficulty Configuration Rules
+        const config = {
+            easy: { rows: 9, cols: 9, mines: 10 },
+            medium: { rows: 12, cols: 12, mines: 22 },
+            hard: { rows: 14, cols: 14, mines: 35 }
+        };
+
+        // Core Game Engine State Framework properties
+        let currentLevel = 'easy';
+        let rows = config.easy.rows;
+        let cols = config.easy.cols;
+        let totalMines = config.easy.mines;
+        
+        let gridMatrix = []; // Backing logic multi-dimensional array matrix
+        let firstClickSafe = true;
+        let isGameOver = false;
+        let activeInputMode = 'dig'; // dig or flag (Primarily for touchscreen assists)
+
+        let timer = 0;
+        let timerInterval = null;
+        let flaggedCount = 0;
+
+        // Interactive UI Element Hook attachments mappings 
+        const gridContainer = document.getElementById('mines-grid');
+        const mineCountVal = document.getElementById('mine-count-val');
+        const timerVal = document.getElementById('timer-val');
+        const btnRestart = document.getElementById('btn-restart');
+        const statusMsg = document.getElementById('status-msg');
+        
+        const diffButtons = document.querySelectorAll('.btn-diff');
+        const toolButtons = document.querySelectorAll('.btn-tool');
+
+        // Dynamic Embedded Graphic SVG Markup Assets Injection Patterns
+        const svgFlag = `<svg viewBox="0 0 100 100"><path d="M25,85 L25,15 L75,35 L25,55" fill="var(--neon-pink)" stroke="var(--neon-pink)" stroke-width="6" stroke-linejoin="round"/></svg>`;
+        const svgMine = `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="22" fill="#fff" stroke="var(--neon-purple)" stroke-width="6"/><path d="M50,10 L50,90 M10,50 L90,50 M22,22 L78,78 M22,78 L78,22" stroke="var(--neon-purple)" stroke-width="8" stroke-linecap="round"/></svg>`;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initMenuListeners();
+            initializeNewMatch();
+        });
+
+        function initMenuListeners() {
+            // Difficulty Selection Switch Toggles handlers setup 
+            diffButtons.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    diffButtons.forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                    currentLevel = e.target.getAttribute('data-level');
+                    
+                    rows = config[currentLevel].rows;
+                    cols = config[currentLevel].cols;
+                    totalMines = config[currentLevel].mines;
+
+                    initializeNewMatch();
+                });
+            });
+
+            // Input Action Switchers handlers setup (Touch devices assistance toggles)
+            toolButtons.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    toolButtons.forEach(b => b.classList.remove('active'));
+                    const targetBtn = e.target.closest('.btn-tool');
+                    targetBtn.classList.add('active');
+                    activeInputMode = targetBtn.getAttribute('data-mode');
+                });
+            });
+
+            btnRestart.addEventListener('click', initializeNewMatch);
+        }
+
+        // Initialize Game Matrix Board Layout setup sequence configurations
+        function initializeNewMatch() {
+            // Clear prior intervals state resets
+            clearInterval(timerInterval);
+            timerInterval = null;
+            timer = 0;
+            flaggedCount = 0;
+            isGameOver = false;
+            firstClickSafe = true;
+
+            timerVal.textContent = "000";
+            mineCountVal.textContent = String(totalMines).padStart(3, '0');
+            btnRestart.textContent = "😊";
+            statusMsg.className = "status-msg ready";
+            statusMsg.textContent = "Find the fields safely";
+
+            // Configure dynamically computed layouts dimensions on styling containers
+            gridContainer.innerHTML = '';
+            gridContainer.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+
+            gridMatrix = [];
+            for (let r = 0; r < rows; r++) {
+                gridMatrix[r] = [];
+                for (let c = 0; c < cols; c++) {
+                    // Instantiation metadata structural attributes schemas properties mapping 
+                    const cellNode = document.createElement('div');
+                    cellNode.classList.add('grid-cell');
+                    cellNode.setAttribute('data-row', r);
+                    cellNode.setAttribute('data-col', c);
+
+                    // Cross platform dual execution interactions registration hooks routines 
+                    cellNode.addEventListener('click', handleCellLeftClickTap);
+                    cellNode.addEventListener('contextmenu', handleCellRightClickFlag);
+
+                    gridContainer.appendChild(cellNode);
+
+                    gridMatrix[r][c] = {
+                        element: cellNode,
+                        isMine: false,
+                        isRevealed: false,
+                        isFlagged: false,
+                        neighborMinesCount: 0,
+                        row: r,
+                        col: c
+                    };
+                }
+            }
+        }
+
+        // Population algorithms matrix routines (Triggered on first cell interaction to guarantee safety factor)
+        function generateMinesDistribution(exclRow, exclCol) {
+            let placedMines = 0;
+            while (placedMines < totalMines) {
+                const randRow = Math.floor(Math.random() * rows);
+                const randCol = Math.floor(Math.random() * cols);
+
+                // Validation filter to avoid cluster collisions and preserve immediate start safe zone threshold perimeter
+                if (!gridMatrix[randRow][randCol].isMine && 
+                    !(Math.abs(randRow - exclRow) <= 1 && Math.abs(randCol - exclCol) <= 1)) {
+                    gridMatrix[randRow][randCol].isMine = true;
+                    placedMines++;
+                }
+            }
+
+            // Pre-calculate neighborhood relative distance indicators scores mapping metrics arrays 
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    if (!gridMatrix[r][c].isMine) {
+                        gridMatrix[r][c].neighborMinesCount = countAdjacentMines(r, c);
+                    }
+                }
+            }
+        }
+
+        function countAdjacentMines(row, col) {
+            let count = 0;
+            for (let dr = -1; dr <= 1; dr++) {
+                for (let dc = -1; dc <= 1; dc++) {
+                    const nr = row + dr;
+                    const nc = col + dc;
+                    if (nr >= 0 && nr < rows && nc >= 0 && nc < cols) {
+                        if (gridMatrix[nr][nc].isMine) count++;
+                    }
+                }
+            }
+            return count;
+        }
+
+        // Action Interactions Execution Processing Cycles
+        function handleCellLeftClickTap(e) {
+            if (isGameOver) return;
+            
+            const cellNode = e.currentTarget;
+            const r = parseInt(cellNode.getAttribute('data-row'));
+            const c = parseInt(cellNode.getAttribute('data-col'));
+            const cell = gridMatrix[r][c];
+
+            // Re-route processing logic flow tracking depending on mobile toggle helpers state 
+            if (activeInputMode === 'flag') {
+                toggleFlagStateElement(cell);
+                return;
+            }
+
+            if (cell.isFlagged || cell.isRevealed) return;
+
+            // First turn step execution routine safety trigger distribution layout configuration allocations
+            if (firstClickSafe) {
+                firstClickSafe = false;
+                generateMinesDistribution(r, c);
+                startTimerCounter();
+            }
+
+            // Mine hit termination explosion sequence execution 
+            if (cell.isMine) {
+                triggerGameOverExplosionLoss(cell);
+                return;
+            }
+
+            // Execute Standard open recursion block flood visibility triggers 
+            revealGridCellsFlood(r, c);
+            evaluateGameWinState();
+        }
+
+        function handleCellRightClickFlag(e) {
+            e.preventDefault(); // Retain standard browser popup behaviors overrides
+            if (isGameOver) return;
+
+            const cellNode = e.currentTarget;
+            const r = parseInt(cellNode.getAttribute('data-row'));
+            const c = parseInt(cellNode.getAttribute('data-col'));
+            const cell = gridMatrix[r][c];
+
+            toggleFlagStateElement(cell);
+        }
+
+        function toggleFlagStateElement(cell) {
+            if (cell.isRevealed) return;
+
+            if (!cell.isFlagged) {
+                cell.isFlagged = true;
+                cell.element.innerHTML = svgFlag;
+                flaggedCount++;
+            } else {
+                cell.isFlagged = false;
+                cell.element.innerHTML = '';
+                flaggedCount--;
+            }
+
+            // Render safe offset variations constraints displays values
+            const remainingMinesDisplay = Math.max(0, totalMines - flaggedCount);
+            mineCountVal.textContent = String(remainingMinesDisplay).padStart(3, '0');
+        }
+
+        // Flood Fill BFS/DFS Empty Cell Cascading reveals propagation routine matrices 
+        function revealGridCellsFlood(startRow, startCol) {
+            const queue = [[startRow, startCol]];
+
+            while (queue.length > 0) {
+                const [r, c] = queue.shift();
+                const cell = gridMatrix[r][c];
+
+                if (cell.isRevealed || cell.isFlagged) continue;
+
+                cell.isRevealed = true;
+                cell.element.classList.add('revealed');
+
+                if (cell.neighborMinesCount > 0) {
+                    cell.element.textContent = cell.neighborMinesCount;
+                    cell.element.classList.add(`n-${cell.neighborMinesCount}`);
+                } else {
+                    // Fetch surrounding elements to expand scope coverage maps 
+                    for (let dr = -1; dr <= 1; dr++) {
+                        for (let dc = -1; dc <= 1; dc++) {
+                            const nr = r + dr;
+                            const nc = c + dc;
+                            if (nr >= 0 && nr < rows && nc >= 0 && nc < cols) {
+                                if (!gridMatrix[nr][nc].isRevealed && !gridMatrix[nr][nc].isFlagged) {
+                                    queue.push([nr, nc]);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Check Victory evaluation standards conditions states parameters matrix 
+        function evaluateGameWinState() {
+            let revealedCount = 0;
+            const targetRevealGoal = (rows * cols) - totalMines;
+
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    if (gridMatrix[r][c].isRevealed) revealedCount++;
+                }
+            }
+
+            if (revealedCount === targetRevealGoal) {
+                isGameOver = true;
+                clearInterval(timerInterval);
+                btnRestart.textContent = "😎";
+                statusMsg.className = "status-msg win";
+                statusMsg.textContent = "Arena Cleared! Victory";
+                
+                // Auto place flags over missing mine parameters tracking spaces safely
+                for (let r = 0; r < rows; r++) {
+                    for (let c = 0; c < cols; c++) {
+                        if (gridMatrix[r][c].isMine && !gridMatrix[r][c].isFlagged) {
+                            gridMatrix[r][c].element.innerHTML = svgFlag;
+                        }
+                    }
+                }
+                mineCountVal.textContent = "000";
+            }
+        }
+
+        function triggerGameOverExplosionLoss(triggeredCell) {
+            isGameOver = true;
+            clearInterval(timerInterval);
+            btnRestart.textContent = "💀";
+            statusMsg.className = "status-msg lose";
+            statusMsg.textContent = "Detonation! Game Over";
+
+            triggeredCell.element.classList.add('mine-hit');
+
+            // Expose board layout map arrays items configurations to player on defeat scenario 
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    const currentCell = gridMatrix[r][c];
+                    if (currentCell.isMine) {
+                        if (!currentCell.isFlagged) {
+                            currentCell.element.innerHTML = svgMine;
+                        }
+                    } else if (currentCell.isFlagged) {
+                        // Flag placement invalid visual indicator feedback adjustment
+                        currentCell.element.style.background = 'rgba(255,255,255,0.02)';
+                        currentCell.element.style.borderColor = 'rgba(255, 51, 51, 0.3)';
+                    }
+                }
+            }
+        }
+
+        // Utility Systems Clock Counter logic execution sequences
+        function startTimerCounter() {
+            if (timerInterval) return;
+            timerInterval = setInterval(() => {
+                timer++;
+                if (timer > 999) {
+                    timer = 999; // Cap timer layout threshold values standard
+                    clearInterval(timerInterval);
+                }
+                timerVal.textContent = String(timer).padStart(3, '0');
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
